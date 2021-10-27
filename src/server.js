@@ -24,15 +24,15 @@ const server = express();
 
 const { PORT } = process.env;
 
-const whiteList = ["http://localhost:3001"];
+const whiteList = [process.env.FE_DEV_URL, process.env.FE_PROD_URL];
+
 const corsOptions = {
-  origin: (origin, callback) => {
-    if (whiteList.some((allowedUrl) => allowedUrl === origin)) {
-      callback(null, true);
+  origin: (origin, next) => {
+    console.log("Origin --> ", origin);
+    if (!origin || whiteList.indexOf(origin) !== -1) {
+      next(null, true);
     } else {
-      const error = new Error("Not allowed by cors!");
-      error.status = 403;
-      callback(error);
+      next(new Error(`Origin ${origin} is not allowed`));
     }
   },
 };
