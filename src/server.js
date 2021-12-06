@@ -1,58 +1,32 @@
-import express from "express";
+import express from 'express'
+import cors from 'cors'
+import reviewsRouter from './reviews/reviews.js'
+import errorHandler from './middleware/error-handlers.js'
+import listEndpoints from 'express-list-endpoints'
+import productsRouter from './products/products.js'
+import { publicFolderPath  } from './lib/fs-tools.js'
 
-import cors from "cors";
 
-import listEndpoints from "express-list-endpoints";
+const server = express()
+const port = 3001
 
-import authorsRouter from "./authors/index.js";
+server.use(cors())
+server.use(express.json())
+server.use(express.static(publicFolderPath))
 
-import blogsRouter from "./blogs/index.js";
+server.use('/reviews', reviewsRouter)
 
-import { errorHandler } from "./errorHandlers.js";
+server.use(errorHandler)
 
-import path, { dirname } from "path";
+// ENDPOINTS HERE
 
-import { fileURLToPath } from "url";
+server.use("/products", productsRouter)
+// console.table(listEndpoints(server))
 
-const __filename = fileURLToPath(import.meta.url);
 
-const __dirname = dirname(__filename);
+// ENDPOINTS ENDS HERE
 
-const publicDirectory = path.join(__dirname, "../public");
 
-const server = express();
-
-const { PORT } = process.env;
-
-const whiteList = [process.env.FE_DEV_URL, process.env.FE_PROD_URL];
-
-const corsOptions = {
-  origin: (origin, next) => {
-    console.log("Origin --> ", origin);
-    if (!origin || whiteList.indexOf(origin) !== -1) {
-      next(null, true);
-    } else {
-      next(new Error(`Origin ${origin} is not allowed`));
-    }
-  },
-};
-
-server.use(cors(corsOptions));
-
-server.use(express.json());
-
-server.use(express.static(publicDirectory));
-
-server.use("/authors", authorsRouter);
-
-server.use("/blogs", blogsRouter);
-
-server.use(errorHandler);
-
-console.log(listEndpoints(server));
-
-server.listen(PORT, () => console.log("✅ Server is running on port : ", PORT));
-
-server.on("error", (error) =>
-  console.log(`❌ Server is not running due to : ${error}`)
-);
+server.listen(port, () => {
+    console.log(`Server Running On Port ${port}`)
+})
