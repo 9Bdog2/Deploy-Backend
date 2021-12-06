@@ -1,32 +1,41 @@
-import express from 'express'
-import cors from 'cors'
-import reviewsRouter from './reviews/reviews.js'
-import errorHandler from './middleware/error-handlers.js'
-import listEndpoints from 'express-list-endpoints'
-import productsRouter from './products/products.js'
-import { publicFolderPath  } from './lib/fs-tools.js'
+import express from "express";
+import cors from "cors";
+import reviewsRouter from "./reviews/reviews.js";
+import errorHandler from "./middleware/error-handlers.js";
+import listEndpoints from "express-list-endpoints";
+import productsRouter from "./products/products.js";
+import { publicFolderPath } from "./lib/fs-tools.js";
 
+const server = express();
+const port = process.env.PORT || 3001;
 
-const server = express()
-const port = 3001
+const whiteList = [process.env.FE_LOCAL_URL, process.env.FE_REMOTE_URL];
 
-server.use(cors())
-server.use(express.json())
-server.use(express.static(publicFolderPath))
+const corsOptions = {
+  origin: function (origin, next) {
+    if (!origin || whiteList.indexOf(origin) !== -1) {
+      next(null, true);
+    } else {
+      next(new Error("Not allowed by CORS"));
+    }
+  },
+};
 
-server.use('/reviews', reviewsRouter)
+server.use(cors(corsOptions));
+server.use(express.json());
+server.use(express.static(publicFolderPath));
 
-server.use(errorHandler)
+server.use("/reviews", reviewsRouter);
+
+server.use(errorHandler);
 
 // ENDPOINTS HERE
 
-server.use("/products", productsRouter)
-// console.table(listEndpoints(server))
-
+server.use("/products", productsRouter);
+console.table(listEndpoints(server));
 
 // ENDPOINTS ENDS HERE
 
-
 server.listen(port, () => {
-    console.log(`Server Running On Port ${port}`)
-})
+  console.log(`Server Running On Port ${port}`);
+});
